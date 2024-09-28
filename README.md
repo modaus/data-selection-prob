@@ -1,4 +1,4 @@
-# data-selection-prob
+# Shapley-guided Data Selection: Greedy or Probabilistic Approaches
 
 <!-- This repository is the official implementation of [My Paper Title](https://arxiv.org/abs/2030.12345). -->
 
