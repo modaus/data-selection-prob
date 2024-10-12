@@ -154,9 +154,11 @@ def data_selection(vals, trnX, trnY, tstX, tstY, clf=None,
 
     # Select data based on the chosen indices
     trnX_sel, trnY_sel = trnX[idx_sel, :], trnY[idx_sel]
-
-    # Train classifier and evaluate performance
-    clf.fit(trnX_sel, trnY_sel)
-    acc = accuracy_score(clf.predict(tstX), tstY)
+    try:
+        # Train classifier and evaluate performance
+        clf.fit(trnX_sel, trnY_sel)
+        acc = accuracy_score(clf.predict(tstX), tstY)
+    except:
+        acc = 0
 
     return acc
