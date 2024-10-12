@@ -86,6 +86,49 @@ def select_indices_with_softmax(sorted_vals, threshold, size_sel):
     
     return idx_sel
 
+def stratified_sampling_with_softmax(trnY, values, sel, strategy='stratified'):
+    """
+    根据给定标签trnY，结合softmax进行分层采样。
+
+    参数:
+    - trnY: 标签数组
+    - values: 每个样本的值（用于softmax计算）
+    - sel: 每个类要选取的比例或数量
+    - strategy: 采样策略
+
+    返回:
+    - 选中的索引数组
+    """
+    N = len(trnY)
+    
+    if strategy == 'stratified':
+        # 获取唯一类别
+        unique_classes = np.unique(trnY)
+        idx_sel = []
+        
+        for cls in unique_classes:
+            # 获取当前类别的所有索引
+            cls_indices = [idx for idx in range(N) if trnY[idx] == cls]
+            # 对应的值 (用于 softmax)
+            cls_values = [values[idx] for idx in cls_indices]
+            
+            # 如果 sel 是比例，计算要选择的样本数量
+            cls_size = int(np.floor(len(cls_indices) * sel)) if sel < 1 else int(sel)
+            
+            # 计算当前类别下的 softmax 概率分布
+            cls_probs = softmax(np.array(cls_values))
+            
+            # 根据 softmax 概率从当前类别中随机选择索引
+            cls_sel = np.random.choice(cls_indices, size=cls_size, replace=False, p=cls_probs)
+            
+            # 将选择的索引加入 idx_sel 列表
+            idx_sel.extend(cls_sel)
+        
+        # 将结果转换为数组返回
+        idx_sel = np.array(idx_sel)
+        
+    return idx_sel
+
 def data_selection(vals, trnX, trnY, tstX, tstY, clf=None, 
                    sel=0.25, strategy='greedy', temperature=1.0, threshold=0.5):
     '''
@@ -160,18 +203,19 @@ def data_selection(vals, trnX, trnY, tstX, tstY, clf=None,
         idx_sel = np.random.choice(indices, size=size_sel, replace=True, p=probs)
 
     elif strategy == 'stratified':
-        # Stratified sampling to maintain the proportion of each class
-        unique_classes = np.unique(trnY)
-        idx_sel = []
-        for cls in unique_classes:
-            # Get all indices of the current class
-            cls_indices = [idx for idx in range(N) if trnY[idx] == cls]
-            # Determine the number of samples to select from this class
-            cls_size = int(np.floor(len(cls_indices) * sel)) if sel < 1 else int(sel)
-            # Randomly select indices from the current class
-            cls_sel = np.random.choice(cls_indices, size=cls_size, replace=False)
-            idx_sel.extend(cls_sel)
-        idx_sel = np.array(idx_sel)
+        idx_sel = stratified_sampling_with_softmax(trnY, sorted_vals, sel=size_sel/len(trnY))
+        # # Stratified sampling to maintain the proportion of each class
+        # unique_classes = np.unique(trnY)
+        # idx_sel = []
+        # for cls in unique_classes:
+        #     # Get all indices of the current class
+        #     cls_indices = [idx for idx in range(N) if trnY[idx] == cls]
+        #     # Determine the number of samples to select from this class
+        #     cls_size = int(np.floor(len(cls_indices) * sel)) if sel < 1 else int(sel)
+        #     # Randomly select indices from the current class
+        #     cls_sel = np.random.choice(cls_indices, size=cls_size, replace=False)
+        #     idx_sel.extend(cls_sel)
+        # idx_sel = np.array(idx_sel)
 
     elif strategy == 'threshold':
         idx_sel = select_indices_with_softmax(sorted_vals, threshold, size_sel)
