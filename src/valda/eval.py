@@ -81,8 +81,11 @@ def data_selection(vals, trnX, trnY, tstX, tstY, clf=None,
 
     # Convert 'vals' dictionary to a sorted list of tuples (index, value) in descending order
     sorted_vals = sorted(vals.items(), key=operator.itemgetter(1), reverse=True)
+    if strategy == 'random':
+        indices = np.array([idx for idx, val in sorted_vals])
+        idx_sel = np.random.choice(indices, size=size_sel, replace=False)
 
-    if strategy == 'greedy':
+    elif strategy == 'greedy':
         # Select top 'size_sel' indices with highest values
         idx_sel = [idx for idx, val in sorted_vals[:size_sel]]
 
