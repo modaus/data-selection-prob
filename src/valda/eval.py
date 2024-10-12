@@ -108,9 +108,9 @@ def stratified_sampling_with_softmax(trnY, values, sel, strategy='stratified'):
         
         for cls in unique_classes:
             # 获取当前类别的所有索引
-            cls_indices = [idx for idx in range(N) if trnY[idx] == cls]
+            cls_indices = [idx for idx, val in values if trnY[idx] == cls]
             # 对应的值 (用于 softmax)
-            cls_values = [values[idx] for idx in cls_indices]
+            cls_values = [val for idx, val in values if idx in cls_indices]
             
             # 如果 sel 是比例，计算要选择的样本数量
             cls_size = int(np.floor(len(cls_indices) * sel)) if sel < 1 else int(sel)
