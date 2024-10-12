@@ -129,6 +129,53 @@ def stratified_sampling_with_softmax(trnY, values, sel, strategy='stratified'):
         
     return idx_sel
 
+
+def stratified_top_percent(trnY, values, sel):
+    """
+    对每个类别进行分层取Top sel百分比的样本。
+
+    参数:
+    - trnY: 标签数组，表示每个样本的类别
+    - values: 每个样本的值，用于确定Top百分比
+    - sel: 每个类别中要选择的百分比（0 < sel <= 1）
+
+    返回:
+    - 选中的索引数组
+    """
+    if not (0 < sel <= 1):
+        raise ValueError("参数 sel 必须是介于 0 和 1 之间的浮点数，表示百分比。")
+
+    N = len(trnY)
+    
+    # 获取唯一类别
+    unique_classes = np.unique(trnY)
+    idx_sel = []
+    
+    for cls in unique_classes:
+        # 获取当前类别的所有索引
+        cls_indices = [idx for idx, val in values if trnY[idx] == cls]
+            # 对应的值 (用于 softmax)
+        cls_values = [val for idx, val in values if idx in cls_indices]
+        
+        # 计算要选择的样本数量，确保至少选择一个样本
+        cls_size = max(int(np.floor(len(cls_indices) * sel)), 1)
+        
+        # 如果当前类别的样本数量小于或等于 cls_size，则选择所有样本
+        if len(cls_indices) <= cls_size:
+            top_indices = cls_indices
+        else:
+            # 获取Top cls_size的索引（按值从大到小排序）
+            top_order = np.argsort(cls_values)[-cls_size:][::-1]
+            top_indices = cls_indices[top_order]
+        
+        # 将选中的索引加入 idx_sel 列表
+        idx_sel.extend(top_indices)
+    
+    # 将结果转换为数组返回
+    idx_sel = np.array(idx_sel)
+    
+    return idx_sel
+
 def data_selection(vals, trnX, trnY, tstX, tstY, clf=None, 
                    sel=0.25, strategy='greedy', temperature=1.0, threshold=0.5):
     '''
@@ -167,7 +214,8 @@ def data_selection(vals, trnX, trnY, tstX, tstY, clf=None,
     elif strategy == 'greedy':
         # Select top 'size_sel' indices with highest values
         idx_sel = [idx for idx, val in sorted_vals[:size_sel]]
-
+    elif strategy == 's-greedy':
+        idx_sel = stratified_top_percent(trnY, sorted_vals, sel=size_sel/len(trnY))
     elif strategy == 'prob':
         # Extract indices and corresponding values
         indices = np.array([idx for idx, val in sorted_vals])
