@@ -65,7 +65,7 @@ def main(dataset_name, sel):
     # print(vals)
 
     dict_acc_sel = dict()
-    strategies = ['random', 'prob', 'greedy', 'softmax',  'stratified', 'threshold']
+    strategies = ['greedy', 's-greedy', 'random', 'prob', 'softmax',  'stratified', 'threshold']
     #  'prob', 'roulette',
     for strategy in strategies:
         acc_sel = data_selection(vals, 
