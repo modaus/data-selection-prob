@@ -165,8 +165,8 @@ def stratified_top_percent(trnY, values, sel):
             top_indices = cls_indices
         else:
             # 获取Top cls_size的索引（按值从大到小排序）
-            top_order = np.argsort(cls_values)[-cls_size:][::-1]
-            top_indices = cls_indices[top_order]
+            # top_order = np.argsort(cls_values)[-cls_size:][::-1]
+            top_indices = cls_indices[:cls_size]
         
         # 将选中的索引加入 idx_sel 列表
         idx_sel.extend(top_indices)
