@@ -7,7 +7,7 @@ class Parameters(object):
     def __init__(self):
         self.params = {
             # For TMC Shapley
-            'tmc_iter':2000,
+            'tmc_iter':5000,
             'tmc_thresh':1e-6,
             # For CS Shapley
             'cs_iter':500,

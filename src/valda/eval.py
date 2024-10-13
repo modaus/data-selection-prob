@@ -51,6 +51,41 @@ def data_removal(vals, trnX, trnY, tstX, tstY, clf=None,
 
 import numpy as np
 
+def softmax(x):
+    """计算输入数组的softmax."""
+    e_x = np.exp(x - np.max(x))  # 为了数值稳定性，减去最大值
+    return e_x / e_x.sum(axis=0)
+
+# 假设 sorted_vals 是已经排序的 [(index, value)] 格式的列表
+def select_indices_with_softmax(sorted_vals, threshold, size_sel):
+    # 选取超过阈值的索引
+    idx_sel = [idx for idx, val in sorted_vals if val > threshold]
+    
+    if len(idx_sel) > size_sel:
+        # 如果选中的索引超过需要的数量，随机选择其中的 size_sel 个
+        idx_sel = np.random.choice(idx_sel, size=size_sel, replace=False)
+    elif len(idx_sel) < size_sel:
+        # 如果选中的索引不足，则从剩余索引中根据softmax后的概率选取
+        remaining = [(idx, val) for idx, val in sorted_vals if idx not in idx_sel]
+        
+        # 将剩余的值转换为数组
+        remaining_vals = np.array([val for idx, val in remaining])
+        remaining_idxs = np.array([idx for idx, val in remaining])
+        
+        # 计算剩余值的softmax概率
+        probs = softmax(remaining_vals)
+        
+        # 计算还需要多少个索引
+        additional_needed = size_sel - len(idx_sel)
+        
+        # 根据softmax概率分布随机选取剩余的索引
+        additional_idx_sel = np.random.choice(remaining_idxs, size=additional_needed, replace=False, p=probs)
+        
+        # 将补充的索引加入到选中的索引列表中
+        idx_sel.extend(additional_idx_sel)
+    
+    return idx_sel
+
 def data_selection(vals, trnX, trnY, tstX, tstY, clf=None, 
                    sel=0.25, strategy='greedy', temperature=1.0, threshold=0.5):
     '''
@@ -79,6 +114,7 @@ def data_selection(vals, trnX, trnY, tstX, tstY, clf=None,
     if clf is None:
         clf = LR(solver="liblinear", max_iter=500, random_state=0)
 
+    threshold = 2 * 1 / len(trnY)
     # Convert 'vals' dictionary to a sorted list of tuples (index, value) in descending order
     sorted_vals = sorted(vals.items(), key=operator.itemgetter(1), reverse=True)
     if strategy == 'random':
@@ -138,16 +174,17 @@ def data_selection(vals, trnX, trnY, tstX, tstY, clf=None,
         idx_sel = np.array(idx_sel)
 
     elif strategy == 'threshold':
+        idx_sel = select_indices_with_softmax(sorted_vals, threshold, size_sel)
         # Select indices where the value exceeds the threshold
-        idx_sel = [idx for idx, val in sorted_vals if val > threshold]
-        if len(idx_sel) > size_sel:
+        # idx_sel = [idx for idx, val in sorted_vals if val > threshold]
+        # if len(idx_sel) > size_sel:
             # If more samples are selected than desired, randomly choose among them
-            idx_sel = np.random.choice(idx_sel, size=size_sel, replace=False)
-        elif len(idx_sel) < size_sel:
+        #     idx_sel = np.random.choice(idx_sel, size=size_sel, replace=False)
+        # elif len(idx_sel) < size_sel:
             # If fewer samples are selected, fill the rest with highest remaining values
-            remaining_indices = [idx for idx, val in sorted_vals if idx not in idx_sel]
-            additional_needed = size_sel - len(idx_sel)
-            idx_sel.extend(remaining_indices[:additional_needed])
+        #    remaining_indices = [idx for idx, val in sorted_vals if idx not in idx_sel]
+        #    additional_needed = size_sel - len(idx_sel)
+        #    idx_sel.extend(remaining_indices[:additional_needed])
 
     else:
         raise ValueError(f"Unimplemented selection strategy: {strategy}")
