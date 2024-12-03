@@ -1,8 +1,16 @@
 # Shapley-guided Data Selection: Greedy or Probabilistic Approaches
 
+## How to run
+
+```setup
+pip install -r requirements.txt
+```
+
+Play with notebooks.
+
 <!-- This repository is the official implementation of [My Paper Title](https://arxiv.org/abs/2030.12345). -->
 
->📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials
+<!-- >📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials
 
 ## Requirements
 
@@ -31,7 +39,7 @@ Our model achieves the following performance on :
 
 ## Contributing
 
->📋  Pick a licence and describe how to contribute to your code repository. 
+>📋  Pick a licence and describe how to contribute to your code repository.  -->
 
 ## Ackwonleagement
 
