@@ -1,5 +1,8 @@
 # Shapley-guided Data Selection: Greedy or Probabilistic Approaches
 
+This is the codebase for "_Rethinking Data Shapley Selection: A Sampling
+Perspective with Guarantees_".
+
 ## How to run
 
 ```setup
